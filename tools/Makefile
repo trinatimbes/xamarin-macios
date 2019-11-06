@@ -1,3 +1,3 @@
 TOP=..
-SUBDIRS=mmp mtouch install-source xibuild mlaunch siminstaller
+SUBDIRS=mmp mtouch xibuild mlaunch siminstaller
 include $(TOP)/Make.config
