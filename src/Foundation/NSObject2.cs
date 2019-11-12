@@ -223,6 +223,11 @@ namespace Foundation {
 			bool native_ref = (flags & Flags.NativeRef) == Flags.NativeRef;
 			if (!native_ref)
 				CreateManagedRef (!alloced);
+
+#if MONOMAC && !COREBUILD
+			if (this is AppKit.NSPanel)
+				Console.WriteLine ("NSPanel.InitializeObject ({4}) 0x{0} {2} => {3}:\n{1}", Handle.ToString ("x"), Environment.StackTrace, GetType (), Class.Name, alloced);
+#endif
 		}
 
 		void CreateManagedRef (bool retain)
