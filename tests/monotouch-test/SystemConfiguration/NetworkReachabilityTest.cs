@@ -138,7 +138,11 @@ namespace MonoTouchFixtures.SystemConfiguration {
 				shouldBeReachable = !TestRuntime.CheckMacSystemVersion (10, 12);
 			}
 #elif __IOS__
-			shouldBeReachable = !TestRuntime.CheckXcodeVersion (8, 0) || TestRuntime.CheckXcodeVersion (11, 2);
+			if (Runtime.Arch == Arch.DEVICE) {
+				shouldBeReachable = !TestRuntime.CheckXcodeVersion (8, 0) || TestRuntime.CheckXcodeVersion (11, 2);
+			} else {
+				shouldBeReachable = true;
+			}
 #endif
 
 			Assert.AreEqual (shouldBeReachable, isReachable, $"#{number} Reachable: {flags.ToString ()}");
