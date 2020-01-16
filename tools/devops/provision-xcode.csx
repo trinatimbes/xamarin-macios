@@ -88,3 +88,4 @@ if (!Directory.Exists (xcode_path)) {
 	Console.WriteLine ($"The required Xcode is already installed.");
 	ExecVerbose ("ln", "-Fhs", xcode_path, "/Applications/Xcode.app");
 }
+ExecVerbose ("ln", "-Fhs", "/Applications/Xcode_11.3.app", "/Applications/Xcode113.app");
