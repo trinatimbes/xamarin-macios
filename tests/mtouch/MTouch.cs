@@ -733,7 +733,7 @@ public class B : A {}
 					GetBaseLibrary (profile),
 					GetBaseLibrary (other),
 				};
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildSim));
+				mtouch.AssertExecuteFailure (MTouchAction.BuildSim);
 				mtouch.AssertError (41, string.Format ("Cannot reference '{0}' in a {1} app.", Path.GetFileName (GetBaseLibrary (other)), GetPlatformName (profile)));
 			}
 		}
@@ -813,7 +813,7 @@ public class B : A {}
 				mtouch.Profile = exe_profile;
 				mtouch.RootAssembly = exe;
 				mtouch.References = new string [] { GetBaseLibrary (exe_profile) };
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildSim), "build");
+				mtouch.AssertExecuteFailure (MTouchAction.BuildSim, "build");
 				var dllBase = Path.GetFileName (GetBaseLibrary (dll_profile));
 				mtouch.AssertError (34, string.Format ("Cannot reference '{0}' in a {1} project - it is implicitly referenced by 'testLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.", dllBase, GetPlatformName (exe_profile)));
 			}
@@ -1069,7 +1069,7 @@ public class B : A {}
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.CreateTemporaryApp ();
 				mtouch.References = new string [] { GetBaseLibrary (profile) };
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildSim));
+				mtouch.AssertExecuteFailure (MTouchAction.BuildSim);
 				mtouch.AssertError (86, "A target framework (--target-framework) must be specified when building for TVOS or WatchOS.");
 			}
 		}
@@ -1108,7 +1108,7 @@ public class B : A {}
 				mtouch.SdkRoot = old_xcode;
 				mtouch.Linker = MTouchLinker.DontLink;
 				mtouch.Sdk = sdk_version;
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildSim));
+				mtouch.AssertExecuteFailure (MTouchAction.BuildSim);
 				var xcodeVersionString = Configuration.XcodeVersionString;
 				mtouch.AssertError (91, String.Format ("This version of Xamarin.iOS requires the {0} {1} SDK (shipped with Xcode {2}). Either upgrade Xcode to get the required header files or set the managed linker behaviour to Link Framework SDKs Only in your project's iOS Build Options > Linker Behavior (to try to avoid the new APIs).", name, GetSdkVersion (profile), xcodeVersionString));
 			}
@@ -1183,7 +1183,7 @@ public class B : A {}
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.CreateTemporaryApp ();
 				mtouch.NoPlatformAssemblyReference = true;
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildSim));
+				mtouch.AssertExecuteFailure (MTouchAction.BuildSim);
 				mtouch.AssertError (96, "No reference to Xamarin.iOS.dll was found.");
 			}
 		}
@@ -2511,7 +2511,7 @@ public class TestApp {
 				mtouch.CreateTemporaryApp ();
 
 				mtouch.Abi = "armv7";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.BuildDev), "device - armv7");
+				mtouch.AssertExecuteFailure (MTouchAction.BuildDev, "device - armv7");
 				mtouch.AssertError ("MT", 75, "Invalid architecture 'ARMv7' for TVOS projects. Valid architectures are: ARM64, ARM64+LLVM");
 			}
 		}
@@ -2919,7 +2919,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":vX;";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1202, "Invalid simulator configuration: :vX;");
 			}
 		}
@@ -2930,7 +2930,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;a";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1203, "Invalid simulator specification: a");
 			}
 		}
@@ -2941,14 +2941,14 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1204, "Invalid simulator specification '': runtime not specified.");
 			}
 
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;devicetype=1";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1204, "Invalid simulator specification 'devicetype=1': runtime not specified.");
 			}
 		}
@@ -2959,7 +2959,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;runtime=1";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1205, "Invalid simulator specification 'runtime=1': device type not specified.");
 			}
 		}
@@ -2970,7 +2970,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;runtime=1,devicetype=2";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1206, "Could not find the simulator runtime '1'.");
 			}
 		}
@@ -2981,7 +2981,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;runtime=com.apple.CoreSimulator.SimRuntime.iOS-" + Configuration.sdk_version.Replace ('.', '-') + ",devicetype=2";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1207, "Could not find the simulator device type '2'.");
 			}
 		}
@@ -2996,7 +2996,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;a=1";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1210, "Invalid simulator specification: 'a=1', unknown key 'a'");
 			}
 		}
@@ -3019,7 +3019,7 @@ public class TestApp {
 			using (var mtouch = new MTouchTool ()) {
 				mtouch.AppPath = "/tmp";
 				mtouch.Device = ":v2;udid=unknown";
-				Assert.AreEqual (1, mtouch.Execute (MTouchAction.LaunchSim), "launch");
+				mtouch.AssertExecuteFailure (MTouchAction.LaunchSim, "launch");
 				mtouch.HasError ("MT", 1216, "Could not find the simulator UDID 'unknown'.");
 			}
 		}

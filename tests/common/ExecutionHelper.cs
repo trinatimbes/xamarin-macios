@@ -90,7 +90,7 @@ namespace Xamarin.Tests
 			args.Add ("--");
 			args.Add (toolPath);
 			args.AddRange (arguments);
-			var rv = ExecutionHelper.Execute (Configuration.XIBuildPath, args, EnvironmentVariables, output, output, workingDirectory: WorkingDirectory);
+			var rv = ExecutionHelper.Execute (Configuration.XIBuildPath, args, EnvironmentVariables, output, output, workingDirectory: WorkingDirectory, throwOnError: false);
 
 			if ((rv != 0 || always_show_output) && output.Length > 0)
 				Console.WriteLine ("\t" + output.ToString ().Replace ("\n", "\n\t"));
@@ -438,7 +438,7 @@ namespace Xamarin.Tests
 	}
 
 	static class ExecutionHelper {
-		static int Execute (string fileName, IList<string> arguments, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null)
+		static int Execute (string fileName, IList<string> arguments, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var psi = new ProcessStartInfo (fileName, StringUtils.FormatArguments (arguments));
 			return Execute (psi, (line) => {
@@ -447,10 +447,10 @@ namespace Xamarin.Tests
 			}, (line) => {
 				lock (stderr)
 					stderr.AppendLine (line);
-			}, timeout);
+			}, timeout, throwOnError);
 		}
 
-		static int Execute (ProcessStartInfo psi, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null)
+		static int Execute (ProcessStartInfo psi, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			return Execute (psi, (line) => {
 				lock (stdout)
@@ -458,37 +458,47 @@ namespace Xamarin.Tests
 			}, (line) => {
 				lock (stderr)
 					stderr.AppendLine (line);
-			}, timeout);
+			}, timeout, throwOnError);
 		}
 
 		public static int Execute (string fileName, IList<string> arguments)
 		{
-			return Execute (fileName, arguments, null, null, null, null);
+			return Execute (fileName, arguments, null, null, null, null, throwOnError: true);
+		}
+
+		public static int Execute (string fileName, IList<string> arguments, bool throwOnError)
+		{
+			return Execute (fileName, arguments, null, null, null, null, throwOnError);
 		}
 
 		public static int Execute (string fileName, IList<string> arguments, TimeSpan? timeout)
 		{
-			return Execute (fileName, arguments, null, null, null, timeout);
+			return Execute (fileName, arguments, null, null, null, timeout, true);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, TimeSpan? timeout, bool throwOnError)
 		{
-			return Execute (fileName, arguments, null, stdout_callback, stderr_callback, timeout);
+			return Execute (fileName, arguments, null, null, null, timeout, throwOnError);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, string working_directory = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
+		{
+			return Execute (fileName, arguments, null, stdout_callback, stderr_callback, timeout, throwOnError);
+		}
+
+		public static int Execute (string fileName, IList<string> arguments, string working_directory = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var psi = new ProcessStartInfo (fileName, StringUtils.FormatArguments (arguments));
 			psi.WorkingDirectory = working_directory;
 			return Execute (psi, stdout_callback, stderr_callback, timeout);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output)
+		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, bool throwOnError = true)
 		{
-			return Execute (fileName, arguments, out output, null, null);
+			return Execute (fileName, arguments, out output, null, null, throwOnError);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, string working_directory, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, string working_directory, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			output = new StringBuilder ();
 			var psi = new ProcessStartInfo (fileName, StringUtils.FormatArguments (arguments));
@@ -498,20 +508,20 @@ namespace Xamarin.Tests
 				lock (psi)
 					capturedOutput.AppendLine (v);
 			});
-			return Execute (psi, callback, callback, timeout);
+			return Execute (psi, callback, callback, timeout, throwOnError);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out bool timed_out, Dictionary<string, string> environment_variables = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, out bool timed_out, Dictionary<string, string> environment_variables = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var psi = new ProcessStartInfo (fileName, StringUtils.FormatArguments (arguments));
 			if (environment_variables != null) {
 				foreach (var ev in environment_variables)
 					psi.EnvironmentVariables [ev.Key] = ev.Value;
 			}
-			return Execute (psi, out timed_out, stdout_callback, stderr_callback, timeout);
+			return Execute (psi, out timed_out, stdout_callback, stderr_callback, timeout, throwOnError);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out bool timed_out, string working_directory = null, Dictionary<string, string> environment_variables = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, out bool timed_out, string working_directory = null, Dictionary<string, string> environment_variables = null, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var psi = new ProcessStartInfo (fileName, StringUtils.FormatArguments (arguments));
 			psi.WorkingDirectory = working_directory;
@@ -519,15 +529,15 @@ namespace Xamarin.Tests
 				foreach (var ev in environment_variables)
 					psi.EnvironmentVariables [ev.Key] = ev.Value;
 			}
-			return Execute (psi, out timed_out, stdout_callback, stderr_callback, timeout);
+			return Execute (psi, out timed_out, stdout_callback, stderr_callback, timeout, throwOnError);
 		}
 
-		public static int Execute (ProcessStartInfo psi, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (ProcessStartInfo psi, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
 		{
-			return Execute (psi, out var _, stdout_callback, stderr_callback, timeout);
+			return Execute (psi, out var _, stdout_callback, stderr_callback, timeout, throwOnError);
 		}
 
-		public static int Execute (ProcessStartInfo psi, out bool timed_out, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null)
+		public static int Execute (ProcessStartInfo psi, out bool timed_out, Action<string> stdout_callback = null, Action<string> stderr_callback = null, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var watch = new Stopwatch ();
 			watch.Start ();
@@ -537,6 +547,8 @@ namespace Xamarin.Tests
 			if (stderr_callback == null)
 				stderr_callback = Console.Error.WriteLine;
 
+			Thread outReader = null;
+			Thread errReader = null;
 			try {
 				psi.UseShellExecute = false;
 				psi.RedirectStandardError = true;
@@ -553,7 +565,7 @@ namespace Xamarin.Tests
 					p.StartInfo.StandardErrorEncoding = Encoding.UTF8;
 					p.Start ();
 
-					var outReader = new Thread (() =>
+					outReader = new Thread (() =>
 						{
 							string l;
 							while ((l = p.StandardOutput.ReadLine ()) != null) {
@@ -565,7 +577,7 @@ namespace Xamarin.Tests
 					};
 					outReader.Start ();
 
-					var errReader = new Thread (() =>
+					errReader = new Thread (() =>
 						{
 							string l;
 							while ((l = p.StandardError.ReadLine ()) != null) {
@@ -587,40 +599,46 @@ namespace Xamarin.Tests
 						kill (p.Id, 9);
 						if (!p.WaitForExit (1000 /* killing should be fairly quick */)) {
 							Console.WriteLine ("Kill failed to kill in 1 second !?");
+							if (throwOnError)
+								throw new TestExecutionException ($"Execution failed (kill timed out after 1s, after execution timed out after {timeout.ToString ()}) for '{p.StartInfo.FileName} {p.StartInfo.Arguments}'");
 							return 1;
 						}
+						if (throwOnError)
+							throw new TestExecutionException ($"Execution failed (timed out after {timeout.ToString ()}) for '{p.StartInfo.FileName} {p.StartInfo.Arguments}'");
 					} else {
 						timed_out = false;
 					}
 
-					outReader.Join (TimeSpan.FromSeconds (1));
-					errReader.Join (TimeSpan.FromSeconds (1));
+					if (throwOnError && p.ExitCode != 0)
+						throw new TestExecutionException ($"Execution failed (exit code: {p.ExitCode}) for '{p.StartInfo.FileName} {p.StartInfo.Arguments}'");
 
 					return p.ExitCode;
 				}
 			} finally {
+				outReader?.Join (TimeSpan.FromSeconds (1));
+				errReader?.Join (TimeSpan.FromSeconds (1));
 				Console.WriteLine ("{0} Executed in {1}: {2} {3}", DateTime.Now, watch.Elapsed.ToString (), psi.FileName, psi.Arguments);
 			}
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out string output, TimeSpan? timeout = null)
+		public static int Execute (string fileName, IList<string> arguments, out string output, TimeSpan? timeout = null, bool throwOnError = true)
 		{
 			var sb = new StringBuilder ();
 			var psi = new ProcessStartInfo ();
 			psi.FileName = fileName;
 			psi.Arguments = StringUtils.FormatArguments (arguments);
-			var rv = Execute (psi, sb, sb, timeout);
+			var rv = Execute (psi, sb, sb, timeout, throwOnError);
 			output = sb.ToString ();
 			return rv;
 		}
 
 		// The arguments are automatically quoted.
-		public static int Execute (string fileName, IList<string> arguments, Dictionary<string, string> environmentVariables, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, string workingDirectory = null)
+		public static int Execute (string fileName, IList<string> arguments, Dictionary<string, string> environmentVariables, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, string workingDirectory = null, bool throwOnError = true)
 		{
-			return Execute (fileName, StringUtils.FormatArguments (arguments), environmentVariables, stdout, stderr, timeout, workingDirectory);
+			return Execute (fileName, StringUtils.FormatArguments (arguments), environmentVariables, stdout, stderr, timeout, workingDirectory, throwOnError);
 		}
 
-		static int Execute (string fileName, string arguments, Dictionary<string, string> environmentVariables, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, string workingDirectory = null)
+		static int Execute (string fileName, string arguments, Dictionary<string, string> environmentVariables, StringBuilder stdout, StringBuilder stderr, TimeSpan? timeout = null, string workingDirectory = null, bool throwOnError = true)
 		{
 			if (stdout == null)
 				stdout = new StringBuilder ();
@@ -639,7 +657,7 @@ namespace Xamarin.Tests
 				}
 			}
 
-			return Execute (psi, stdout, stderr, timeout);
+			return Execute (psi, stdout, stderr, timeout, throwOnError);
 		}
 
 		[DllImport ("libc")]

@@ -80,7 +80,7 @@ namespace Xamarin
 				sb.Add (Sdk);
 			} else {
 				sb.Add ("--sdk");
-				sb.Add (Profile.ToString ());
+				sb.Add (MTouch.GetSdkVersion (Profile));
 			}
 
 			string platformName = null;
