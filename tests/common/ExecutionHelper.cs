@@ -493,9 +493,19 @@ namespace Xamarin.Tests
 			return Execute (psi, stdout_callback, stderr_callback, timeout);
 		}
 
-		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, bool throwOnError = true)
+		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output)
+		{
+			return Execute (fileName, arguments, out output, null, null, true);
+		}
+
+		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, bool throwOnError)
 		{
 			return Execute (fileName, arguments, out output, null, null, throwOnError);
+		}
+
+		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, string working_directory, TimeSpan? timeout = null)
+		{
+			return Execute (fileName, arguments, out output, working_directory, timeout, true);
 		}
 
 		public static int Execute (string fileName, IList<string> arguments, out StringBuilder output, string working_directory, TimeSpan? timeout = null, bool throwOnError = true)
