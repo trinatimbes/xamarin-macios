@@ -147,6 +147,7 @@ enum NSObjectFlags {
 	NSObjectFlagsHasManagedRef = 32,
 	// 64, // Used by SoM
 	NSObjectFlagsIsCustomType = 128,
+	NSObjectFlagsRequiresUIThread = 256,
 };
 
 struct AssemblyLocation {

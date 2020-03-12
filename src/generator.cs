@@ -4236,7 +4236,8 @@ public partial class Generator : IMemberGatherer {
 		indent++;
 		// if the namespace/type needs it and if the member is NOT marked as safe (don't check)
 		// if the namespace/type does NOT need it and if the member is marked as NOT safe (do check)
-		if (type_needs_thread_checks ? (minfo.threadCheck != ThreadCheck.Off) : (minfo.threadCheck == ThreadCheck.On))
+		bool requiresUiThread = type_needs_thread_checks ? (minfo.threadCheck != ThreadCheck.Off) : (minfo.threadCheck == ThreadCheck.On);
+		if (requiresUiThread)
 			GenerateThreadCheck ();
 
 		Inject<PrologueSnippetAttribute> (mi);
@@ -4352,6 +4353,10 @@ public partial class Generator : IMemberGatherer {
 				if (null_handle) {
 					print ("try {");
 					indent++;
+				}
+
+				if (requiresUiThread) {
+					print ("RequiresUIThread = true;");
 				}
 
 				WriteIsDirectBindingCondition (sw, ref indent, is_direct_binding,

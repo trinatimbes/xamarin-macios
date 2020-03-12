@@ -72,7 +72,7 @@ namespace Foundation {
 
 		// This enum has a native counterpart in runtime.h
 		[Flags]
-		enum Flags : byte {
+		enum Flags : ushort {
 			Disposed = 1,
 			NativeRef = 2,
 			IsDirectBinding = 4,
@@ -81,6 +81,8 @@ namespace Foundation {
 			HasManagedRef = 32,
 			// 64, // Used by SoM
 			IsCustomType = 128,
+			// TODO: Which version would generate less code, RequiresUIThread or the negated version?
+			RequiresUIThread = 256,
 		}
 
 		bool disposed { 
@@ -103,6 +105,11 @@ namespace Foundation {
 
 		internal bool InFinalizerQueue {
 			get { return ((flags & Flags.InFinalizerQueue) == Flags.InFinalizerQueue); }
+		}
+
+		internal bool RequiresUIThread {
+			get { return ((flags & Flags.RequiresUIThread) == Flags.RequiresUIThread); }
+			set { flags = value ? (flags | Flags.RequiresUIThread) : (flags & ~Flags.RequiresUIThread); }
 		}
 
 		bool IsCustomType {
@@ -784,7 +791,7 @@ namespace Foundation {
 			disposed = true;
 			
 			if (handle != IntPtr.Zero) {
-				if (disposing) {
+				if (disposing || (IsDirectBinding && !RequiresUIThread)) {
 					ReleaseManagedRef ();
 				} else {
 					NSObject_Disposer.Add (this);
