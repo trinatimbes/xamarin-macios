@@ -4355,10 +4355,6 @@ public partial class Generator : IMemberGatherer {
 					indent++;
 				}
 
-				if (requiresUiThread) {
-					print ("RequiresUIThread = true;");
-				}
-
 				WriteIsDirectBindingCondition (sw, ref indent, is_direct_binding,
 							       mi.Name == "Constructor" ? is_direct_binding_value : null, // We only need to print the is_direct_binding value in constructors
 				                               () => { GenerateNewStyleInvoke (false, mi, minfo, sel, argsArray, needs_temp, category_type); return null; },
@@ -4482,8 +4478,12 @@ public partial class Generator : IMemberGatherer {
 				print ("return ret;");
 			}
 		}
-		if (minfo.is_ctor)
+		if (minfo.is_ctor) {
+			if (requiresUiThread) {
+				print ("RequiresUIThread = true;");
+			}
 			WriteMarkDirtyIfDerived (sw, mi.DeclaringType);
+		}
 		if (stringParameters != null){
 			indent--;
 			print ("}");
