@@ -151,7 +151,7 @@ enum NSObjectFlags {
 
 enum NSObjectFlags2 {
 	NSObjectFlagsRequiresUIThread = 1,
-}
+};
 
 struct AssemblyLocation {
 	const char *assembly_name; // base name (without extension) of the assembly
