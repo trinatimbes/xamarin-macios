@@ -69,10 +69,11 @@ namespace Foundation {
 		IntPtr handle;
 		IntPtr class_handle;
 		Flags flags;
+		Flags2 flags2;
 
 		// This enum has a native counterpart in runtime.h
 		[Flags]
-		enum Flags : ushort {
+		enum Flags : byte {
 			Disposed = 1,
 			NativeRef = 2,
 			IsDirectBinding = 4,
@@ -81,8 +82,11 @@ namespace Foundation {
 			HasManagedRef = 32,
 			// 64, // Used by SoM
 			IsCustomType = 128,
-			// TODO: Which version would generate less code, RequiresUIThread or the negated version?
-			RequiresUIThread = 256,
+		}
+
+		[Flags]
+		enum Flags2 : byte {
+			RequiresUIThread = 1,
 		}
 
 		bool disposed { 
@@ -108,8 +112,8 @@ namespace Foundation {
 		}
 
 		internal bool RequiresUIThread {
-			get { return ((flags & Flags.RequiresUIThread) == Flags.RequiresUIThread); }
-			set { flags = value ? (flags | Flags.RequiresUIThread) : (flags & ~Flags.RequiresUIThread); }
+			get { return ((flags2 & Flags2.RequiresUIThread) == Flags2.RequiresUIThread); }
+			set { flags2 = value ? (flags2 | Flags2.RequiresUIThread) : (flags2 & ~Flags2.RequiresUIThread); }
 		}
 
 		bool IsCustomType {

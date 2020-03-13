@@ -147,8 +147,11 @@ enum NSObjectFlags {
 	NSObjectFlagsHasManagedRef = 32,
 	// 64, // Used by SoM
 	NSObjectFlagsIsCustomType = 128,
-	NSObjectFlagsRequiresUIThread = 256,
 };
+
+enum NSObjectFlags2 {
+	NSObjectFlagsRequiresUIThread = 1,
+}
 
 struct AssemblyLocation {
 	const char *assembly_name; // base name (without extension) of the assembly

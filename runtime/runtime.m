@@ -184,6 +184,7 @@ struct Managed_NSObject {
 	id handle;
 	void *class_handle;
 	uint8_t flags;
+	uint8_t flags2;
 };
 
 static void
