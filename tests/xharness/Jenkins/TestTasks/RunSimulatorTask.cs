@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Xharness.Collections;
-using Xharness.Hardware;
+using Microsoft.DotNet.XHarness.iOS.Shared.Execution;
+using Microsoft.DotNet.XHarness.iOS.Shared.Logging;
+using Microsoft.DotNet.XHarness.iOS.Shared;
+using Microsoft.DotNet.XHarness.iOS.Shared.Listeners;
+using Microsoft.DotNet.XHarness.iOS.Shared.Collections;
+using Microsoft.DotNet.XHarness.iOS.Shared.Hardware;
 
-namespace Xharness.Jenkins.TestTasks
-{
+namespace Xharness.Jenkins.TestTasks {
 	class RunSimulatorTask : RunXITask<ISimulatorDevice>
 	{
+		readonly ISimulatorsLoader simulators;
 		public IAcquiredResource AcquiredResource;
 
 		public ISimulatorDevice [] Simulators {
@@ -24,17 +28,19 @@ namespace Xharness.Jenkins.TestTasks
 			}
 		}
 
-		public RunSimulatorTask (MSBuildTask build_task, IEnumerable<ISimulatorDevice> candidates = null)
-			: base (build_task, candidates)
+		public RunSimulatorTask (ISimulatorsLoader simulators, MSBuildTask build_task, IProcessManager ProcessManager, IEnumerable<ISimulatorDevice> candidates = null)
+			: base (build_task, ProcessManager, candidates)
 		{
 			var project = Path.GetFileNameWithoutExtension (ProjectFile);
 			if (project.EndsWith ("-tvos", StringComparison.Ordinal)) {
-				AppRunnerTarget = AppRunnerTarget.Simulator_tvOS;
+				AppRunnerTarget = TestTarget.Simulator_tvOS;
 			} else if (project.EndsWith ("-watchos", StringComparison.Ordinal)) {
-				AppRunnerTarget = AppRunnerTarget.Simulator_watchOS;
+				AppRunnerTarget = TestTarget.Simulator_watchOS;
 			} else {
-				AppRunnerTarget = AppRunnerTarget.Simulator_iOS;
+				AppRunnerTarget = TestTarget.Simulator_iOS;
 			}
+
+			this.simulators = simulators ?? throw new ArgumentNullException (nameof (simulators));
 		}
 
 		public async Task FindSimulatorAsync ()
@@ -52,7 +58,7 @@ namespace Xharness.Jenkins.TestTasks
 			} else {
 				Device = Candidates.First ();
 				if (Platform == TestPlatform.watchOS)
-					CompanionDevice = Jenkins.Simulators.FindCompanionDevice (Jenkins.SimulatorLoadLog, Device);
+					CompanionDevice = simulators.FindCompanionDevice (Jenkins.SimulatorLoadLog, Device);
 			}
 
 		}
@@ -70,20 +76,26 @@ namespace Xharness.Jenkins.TestTasks
 			await FindSimulatorAsync ();
 
 			var clean_state = false;//Platform == TestPlatform.watchOS;
-			runner = new AppRunner () {
-				Harness = Harness,
-				ProjectFile = ProjectFile,
-				EnsureCleanSimulatorState = clean_state,
-				Target = AppRunnerTarget,
-				LogDirectory = LogDirectory,
-				MainLog = Logs.Create ($"run-{Device.UDID}-{Timestamp}.log", "Run log"),
-				Configuration = ProjectConfiguration,
-				TimeoutMultiplier = TimeoutMultiplier,
-				Variation = Variation,
-				BuildTask = BuildTask,
-			};
-			runner.Simulators = Simulators;
-			runner.Initialize ();
+			runner = new AppRunner (ProcessManager,
+				new AppBundleInformationParser (),
+				new SimulatorsLoaderFactory (ProcessManager),
+				new SimpleListenerFactory (),
+				new DeviceLoaderFactory (ProcessManager),
+				new CrashSnapshotReporterFactory (ProcessManager),
+				new CaptureLogFactory (),
+				new DeviceLogCapturerFactory (ProcessManager),
+				new TestReporterFactory (ProcessManager),
+				AppRunnerTarget,
+				Harness,
+				mainLog: Logs.Create ($"run-{Device.UDID}-{Timestamp}.log", "Run log"),
+				logs: Logs,
+				projectFilePath: ProjectFile,				
+				ensureCleanSimulatorState: clean_state,
+				buildConfiguration: ProjectConfiguration,
+				timeoutMultiplier: TimeoutMultiplier,
+				variation: Variation,
+				buildTask: BuildTask,
+				simulators: Simulators);
 		}
 
 		Task<IAcquiredResource> AcquireResourceAsync ()

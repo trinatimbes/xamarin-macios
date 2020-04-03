@@ -29,7 +29,6 @@ namespace MonoMac.Tuner {
 		public IEnumerable<string> SkippedAssemblies { get; set; }
 		public I18nAssemblies I18nAssemblies { get; set; }
 		public IList<string> ExtraDefinitions { get; set; }
-		public TargetFramework TargetFramework { get; set; }
 		public string Architecture { get; set; }
 		internal PInvokeWrapperGenerator MarshalNativeExceptionsState { get; set; }
 		internal RuntimeOptions RuntimeOptions { get; set; }
@@ -136,7 +135,7 @@ namespace MonoMac.Tuner {
 
 				pipeline.Append (GetSubSteps (options));
 
-				pipeline.Append (new MonoMacPreserveCode (options));
+				pipeline.Append (new CorePreserveCode (options.I18nAssemblies));
 				pipeline.Append (new PreserveCrypto ());
 
 				pipeline.Append (new MonoMacMarkStep ());
@@ -162,6 +161,10 @@ namespace MonoMac.Tuner {
 			// expect that changes can occur until it's all saved back to disk
 			if (options.WarnOnTypeRef.Count > 0)
 				pipeline.Append (new PostLinkScanTypeReferenceStep (options.WarnOnTypeRef));
+
+			// expect that changes can occur until it's all saved back to disk
+			if (options.WarnOnTypeRef.Count > 0)
+				pipeline.AppendStep (new PostLinkScanTypeReferenceStep (options.WarnOnTypeRef));
 
 			return pipeline;
 		}

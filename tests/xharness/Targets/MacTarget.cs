@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Xharness.Utilities;
+using Microsoft.DotNet.XHarness.iOS.Shared.Utilities;
 
 namespace Xharness.Targets
 {
@@ -182,7 +182,7 @@ namespace Xharness.Targets
 		{
 			base.PostProcessExecutableProject ();
 
-			ProjectGuid = "{" + Harness.NewStableGuid ().ToString ().ToUpper () + "}";
+			ProjectGuid = "{" + Helpers.GenerateStableGuid ().ToString ().ToUpper () + "}";
 			inputProject.SetProjectGuid (ProjectGuid);
 		}
 	}

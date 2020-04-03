@@ -351,6 +351,7 @@ COMPRESSION_SOURCES = \
 	Compression/Deflater.cs \
 	Compression/Enums.cs \
 	Compression/Inflater.cs \
+	Compression/TaskToApm.cs \
 
 # Contacts
 
@@ -903,8 +904,6 @@ HOMEKIT_SOURCES = \
 	HomeKit/HMCharacteristicProperties.cs \
 	HomeKit/HMEventTrigger.cs \
 	HomeKit/HMHome.cs \
-	HomeKit/HMSignificantTimeEvent.cs \
-	HomeKit/HMMutableSignificantTimeEvent.cs \
 	HomeKit/HMService.cs \
 
 # iAd
@@ -1565,6 +1564,7 @@ UIKIT_SOURCES = \
 	UIKit/UIDynamicAnimator.cs \
 	UIKit/UIEnumsExtensions.cs \
 	UIKit/UIEvent.cs \
+	UIKit/UIEventButtonMaskExtensions.cs \
 	UIKit/UIFont.cs \
 	UIKit/UIFontFeature.cs \
 	UIKit/UIGestureRecognizer.cs \
@@ -1823,6 +1823,7 @@ COMMON_FRAMEWORKS =         \
 	SceneKit                \
 	SoundAnalysis 			\
 	SpriteKit               \
+	StoreKit				\
 
 MAC_FRAMEWORKS =            \
 	$(COMMON_FRAMEWORKS)    \
@@ -1831,6 +1832,7 @@ MAC_FRAMEWORKS =            \
 	AppKit XKit             \
 	AudioToolbox            \
 	AudioUnit               \
+	AutomaticAssessmentConfiguration \
 	AVKit                   \
 	BusinessChat            \
 	CFNetwork               \
@@ -1899,7 +1901,6 @@ MAC_FRAMEWORKS =            \
 	Security                \
 	Social                  \
 	Speech                  \
-	StoreKit                \
 	SystemConfiguration     \
 	UserNotifications       \
 	VideoSubscriberAccount  \
@@ -1919,6 +1920,7 @@ IOS_FRAMEWORKS =         \
 	AssetsLibrary \
 	AudioToolbox \
 	AudioUnit \
+	AutomaticAssessmentConfiguration \
 	BackgroundTasks \
 	BusinessChat \
 	CallKit \
@@ -1992,7 +1994,6 @@ IOS_FRAMEWORKS =         \
 	Security \
 	Social \
 	Speech \
-	StoreKit \
 	SystemConfiguration \
 	Twitter \
 	UIKit XKit \
@@ -2073,7 +2074,6 @@ TVOS_FRAMEWORKS =           \
 	PhotosUI                \
 	ReplayKit               \
 	Security                \
-	StoreKit                \
 	SystemConfiguration     \
 	TVMLKit                 \
 	TVUIKit					\

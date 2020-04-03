@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Xharness.Logging;
+using Microsoft.DotNet.XHarness.iOS.Shared;
+using Microsoft.DotNet.XHarness.iOS.Shared.Execution;
+using Microsoft.DotNet.XHarness.iOS.Shared.Logging;
 
-namespace Xharness.Jenkins.TestTasks
-{
+namespace Xharness.Jenkins.TestTasks {
 	class RunXtroTask : MacExecuteTask
 	{
-
-		public string WorkingDirectory;
-
-		public RunXtroTask (BuildToolTask build_task) : base (build_task)
+		public RunXtroTask (BuildToolTask build_task, IProcessManager processManager, ICrashSnapshotReporterFactory crashReportSnapshotFactory)
+			: base (build_task, processManager, crashReportSnapshotFactory)
 		{
 		}
 
@@ -32,7 +31,7 @@ namespace Xharness.Jenkins.TestTasks
 					if (!Harness.DryRun) {
 						ExecutionResult = TestExecutingResult.Running;
 
-						var snapshot = new CrashReportSnapshot () { Device = false, Harness = Harness, Log = log, Logs = Logs, LogDirectory = LogDirectory };
+						var snapshot = CrashReportSnapshotFactory.Create (log, Logs, isDevice: false, deviceName: null);
 						await snapshot.StartCaptureAsync ();
 
 						try {

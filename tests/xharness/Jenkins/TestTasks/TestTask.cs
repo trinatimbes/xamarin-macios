@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
-using Xharness.Logging;
-using Xharness.Utilities;
+using Microsoft.DotNet.XHarness.iOS.Shared;
+using Microsoft.DotNet.XHarness.iOS.Shared.Logging;
+using Microsoft.DotNet.XHarness.iOS.Shared.Utilities;
 
-namespace Xharness.Jenkins.TestTasks
-{
-	abstract class TestTask
+namespace Xharness.Jenkins.TestTasks {
+	public abstract class TestTask
 	{
 		static int counter;
 		public readonly int ID = counter++;
@@ -132,7 +132,7 @@ namespace Xharness.Jenkins.TestTasks
 
 		protected static string Timestamp {
 			get {
-				return Harness.Timestamp;
+				return Helpers.Timestamp;
 			}
 		}
 
@@ -192,7 +192,7 @@ namespace Xharness.Jenkins.TestTasks
 			}
 		}
 
-		public virtual IEnumerable<Log> AggregatedLogs {
+		public virtual IEnumerable<ILog> AggregatedLogs {
 			get {
 				return Logs;
 			}

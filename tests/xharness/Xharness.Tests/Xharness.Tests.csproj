@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\packages\NUnit3TestAdapter.3.16.1\build\net35\NUnit3TestAdapter.props" Condition="Exists('..\..\..\packages\NUnit3TestAdapter.3.16.1\build\net35\NUnit3TestAdapter.props')" />
   <Import Project="..\..\..\packages\NUnit.3.12.0\build\NUnit.props" Condition="Exists('..\..\..\packages\NUnit.3.12.0\build\NUnit.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,6 +10,8 @@
     <RootNamespace>Xharness.Tests</RootNamespace>
     <AssemblyName>Xharness.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,28 +54,23 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BCLTestImporter\Tests\BCLTestInfoPlistGeneratorTest.cs" />
-    <Compile Include="BCLTestImporter\Tests\BCLTestProjectGeneratorTest.cs" />
-    <Compile Include="BCLTestImporter\Tests\TestAssemblyDefinitionTest.cs" />
-    <Compile Include="BCLTestImporter\Tests\TestProjectDefinitionTest.cs" />
-    <Compile Include="Tests\XmlResultParserTests.cs" />
-    <Compile Include="Logging\Tests\LogsTest.cs" />
-    <Compile Include="Logging\Tests\LogFileTest.cs" />
-    <Compile Include="Logging\Tests\ConsoleLogTest.cs" />
-    <Compile Include="Logging\Tests\CallbackLogTest.cs" />
-    <Compile Include="Logging\Tests\CaptureLogTest.cs" />
-    <Compile Include="Listeners\Tests\SimpleListenerFactoryTest.cs" />
-    <Compile Include="Listeners\Tests\SimpleFileListenerTest.cs" />
-    <Compile Include="Listeners\Tests\SimpleTcpListenerTest.cs" />
-    <Compile Include="Execution\Tests\ProcessManagerTests.cs" />
-    <Compile Include="Execution\Tests\MlaunchArgumentsTest.cs" />
-    <Compile Include="Hardware\Tests\DeviceTest.cs" />
-    <Compile Include="Hardware\Tests\DevicesTest.cs" />
-    <Compile Include="Hardware\Tests\TCCDatabaseTests.cs" />
-    <Compile Include="Utilities\Tests\StringUtilsTests.cs" />
+    <Compile Include="TestImporter\Tests\BCLTestInfoPlistGeneratorTest.cs" />
+    <Compile Include="TestImporter\Tests\BCLTestProjectGeneratorTest.cs" />
+    <Compile Include="TestImporter\Tests\TestAssemblyDefinitionTest.cs" />
+    <Compile Include="TestImporter\Tests\TestProjectDefinitionTest.cs" />
+    <Compile Include="Tests\AppRunnerTests.cs" />
+    <Compile Include="TestImporter\Xamarin\Tests\ProjectFilterTest.cs" />
+    <Compile Include="TestImporter\Xamarin\Tests\AssemblyLocatorTest.cs" />
+    <Compile Include="TestImporter\Xamarin\Tests\XamariniOSTemplateTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Samples\TestProject\Info.plist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Samples\TestProject\SystemXunit.csproj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Samples\NUnitV2Sample.xml" />
@@ -80,6 +78,11 @@
     <EmbeddedResource Include="Samples\TouchUnitSample.xml" />
     <EmbeddedResource Include="Samples\xUnitSample.xml" />
     <EmbeddedResource Include="Samples\devices.xml" />
+    <EmbeddedResource Include="Samples\simulators.xml" />
+    <EmbeddedResource Include="Samples\run-log.txt" />
+    <EmbeddedResource Include="Samples\NUnitV3SampleSuccess.xml" />
+    <EmbeddedResource Include="Samples\NUnitV3SampleFailure.xml" />
+    <EmbeddedResource Include="Samples\Issue8214.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../DummyTestProcess/DummyTestProcess.csproj">
@@ -87,14 +90,14 @@
       <Project>{2318BC20-40F1-4A12-B695-10B0433CFB35}</Project>
       <Name>DummyTestProcess</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Microsoft.DotNet.XHarness.iOS.Shared\Microsoft.DotNet.XHarness.iOS.Shared.csproj">
+      <Project>{5be5cabf-8d6c-4f35-9e5b-505b4c40b2ac}</Project>
+      <Name>Microsoft.DotNet.XHarness.iOS.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\xharness.csproj">
       <Project>{e1f53f80-8399-499b-8017-c414b9cd263b}</Project>
       <Name>xharness</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Hardware\" />
-    <Folder Include="Hardware\Tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -102,5 +105,6 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\..\packages\NUnit.3.12.0\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\NUnit.3.12.0\build\NUnit.props'))" />
+    <Error Condition="!Exists('..\..\..\packages\NUnit3TestAdapter.3.16.1\build\net35\NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\NUnit3TestAdapter.3.16.1\build\net35\NUnit3TestAdapter.props'))" />
   </Target>
 </Project>

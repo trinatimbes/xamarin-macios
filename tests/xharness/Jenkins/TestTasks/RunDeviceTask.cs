@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xharness.Hardware;
+using Microsoft.DotNet.XHarness.iOS.Shared.Execution;
+using Microsoft.DotNet.XHarness.iOS.Shared.Logging;
+using Microsoft.DotNet.XHarness.iOS.Shared;
+using Microsoft.DotNet.XHarness.iOS.Shared.Listeners;
+using Microsoft.DotNet.XHarness.iOS.Shared.Hardware;
 
-namespace Xharness.Jenkins.TestTasks
-{
+namespace Xharness.Jenkins.TestTasks {
 	class RunDeviceTask : RunXITask<IHardwareDevice>
 	{
+		readonly IResultParser resultParser = new XmlResultParser ();
+		readonly IDeviceLoader devices;
+
 		AppInstallMonitorLog install_log;
+
 		public override string ProgressMessage {
 			get {
 				var log = install_log;
@@ -33,30 +40,32 @@ namespace Xharness.Jenkins.TestTasks
 			}
 		}
 
-		public RunDeviceTask (MSBuildTask build_task, IEnumerable<IHardwareDevice> candidates)
-			: base (build_task, candidates.OrderBy ((v) => v.DebugSpeed))
+		public RunDeviceTask (IDeviceLoader devices, MSBuildTask build_task, IProcessManager ProcessManager, IEnumerable<IHardwareDevice> candidates)
+			: base (build_task, ProcessManager, candidates.OrderBy ((v) => v.DebugSpeed))
 		{
 			switch (build_task.Platform) {
 			case TestPlatform.iOS:
 			case TestPlatform.iOS_Unified:
 			case TestPlatform.iOS_Unified32:
 			case TestPlatform.iOS_Unified64:
-				AppRunnerTarget = AppRunnerTarget.Device_iOS;
+				AppRunnerTarget = TestTarget.Device_iOS;
 				break;
 			case TestPlatform.iOS_TodayExtension64:
-				AppRunnerTarget = AppRunnerTarget.Device_iOS;
+				AppRunnerTarget = TestTarget.Device_iOS;
 				break;
 			case TestPlatform.tvOS:
-				AppRunnerTarget = AppRunnerTarget.Device_tvOS;
+				AppRunnerTarget = TestTarget.Device_tvOS;
 				break;
 			case TestPlatform.watchOS:
 			case TestPlatform.watchOS_32:
 			case TestPlatform.watchOS_64_32:
-				AppRunnerTarget = AppRunnerTarget.Device_watchOS;
+				AppRunnerTarget = TestTarget.Device_watchOS;
 				break;
 			default:
 				throw new NotImplementedException ();
 			}
+
+			this.devices = devices ?? throw new ArgumentNullException (nameof (devices));
 		}
 
 		protected override async Task RunTestAsync ()
@@ -69,22 +78,29 @@ namespace Xharness.Jenkins.TestTasks
 					// Set the device we acquired.
 					Device = Candidates.First ((d) => d.UDID == device_resource.Resource.Name);
 					if (Device.DevicePlatform == DevicePlatform.watchOS)
-						CompanionDevice = Jenkins.Devices.FindCompanionDevice (Jenkins.DeviceLoadLog, Device);
+						CompanionDevice = devices.FindCompanionDevice (Jenkins.DeviceLoadLog, Device);
 					Jenkins.MainLog.WriteLine ("Acquired device '{0}' for '{1}'", Device.Name, ProjectFile);
 
-					runner = new AppRunner {
-						Harness = Harness,
-						ProjectFile = ProjectFile,
-						Target = AppRunnerTarget,
-						LogDirectory = LogDirectory,
-						MainLog = uninstall_log,
-						DeviceName = Device.Name,
-						CompanionDeviceName = CompanionDevice?.Name,
-						Configuration = ProjectConfiguration,
-						TimeoutMultiplier = TimeoutMultiplier,
-						Variation = Variation,
-						BuildTask = BuildTask,
-					};
+					runner = new AppRunner (ProcessManager,
+						new AppBundleInformationParser (),
+						new SimulatorsLoaderFactory (ProcessManager),
+						new SimpleListenerFactory (),
+						new DeviceLoaderFactory (ProcessManager),
+						new CrashSnapshotReporterFactory (ProcessManager),
+						new CaptureLogFactory (),
+						new DeviceLogCapturerFactory (ProcessManager),
+						new TestReporterFactory (ProcessManager),
+						AppRunnerTarget,
+						Harness,
+						projectFilePath: ProjectFile,
+						mainLog: uninstall_log,
+						logs: new Logs (LogDirectory ?? Harness.LogDirectory),
+						buildConfiguration: ProjectConfiguration,
+						deviceName: Device.Name,
+						companionDeviceName: CompanionDevice?.Name,
+						timeoutMultiplier: TimeoutMultiplier,
+						variation: Variation,
+						buildTask: BuildTask);
 
 					// Sometimes devices can't upgrade (depending on what has changed), so make sure to uninstall any existing apps first.
 					if (Jenkins.UninstallTestApp) {
@@ -106,8 +122,8 @@ namespace Xharness.Jenkins.TestTasks
 								FailureMessage = $"Install failed, exit code: {install_result.ExitCode}.";
 								ExecutionResult = TestExecutingResult.Failed;
 								if (Harness.InCI)
-									XmlResultParser.GenerateFailure (Logs, "install", runner.AppName, runner.Variation,
-										$"AppInstallation on {runner.DeviceName}", $"Install failed on {runner.DeviceName}, exit code: {install_result.ExitCode}",
+									resultParser.GenerateFailure (Logs, "install", runner.AppInformation.AppName, Variation,
+										$"AppInstallation on {Device.Name}", $"Install failed on {Device.Name}, exit code: {install_result.ExitCode}",
 										install_log.FullPath, Harness.XmlJargon);
 							}
 						} finally {
@@ -132,18 +148,27 @@ namespace Xharness.Jenkins.TestTasks
 							// nor will it close & reopen the today app (but launching the main app
 							// will do both of these things, preparing the device for launching the today extension).
 
-							AppRunner todayRunner = new AppRunner {
-								Harness = Harness,
-								ProjectFile = TestProject.GetTodayExtension ().Path,
-								Target = AppRunnerTarget,
-								LogDirectory = LogDirectory,
-								MainLog = Logs.Create ($"extension-run-{Device.UDID}-{Timestamp}.log", "Extension run log"),
-								DeviceName = Device.Name,
-								CompanionDeviceName = CompanionDevice?.Name,
-								Configuration = ProjectConfiguration,
-								Variation = Variation,
-								BuildTask = BuildTask,
-							};
+							AppRunner todayRunner = new AppRunner (ProcessManager,
+								new AppBundleInformationParser (),
+								new SimulatorsLoaderFactory (ProcessManager),
+								new SimpleListenerFactory (),
+								new DeviceLoaderFactory (ProcessManager),
+								new CrashSnapshotReporterFactory (ProcessManager),
+								new CaptureLogFactory (),
+								new DeviceLogCapturerFactory (ProcessManager),
+								new TestReporterFactory (ProcessManager),
+								AppRunnerTarget,
+								Harness,
+								projectFilePath: ProjectFile,
+								mainLog: Logs.Create ($"extension-run-{Device.UDID}-{Timestamp}.log", "Extension run log"),
+								logs: new Logs (LogDirectory ?? Harness.LogDirectory),
+								buildConfiguration: ProjectConfiguration,
+								deviceName: Device.Name,
+								companionDeviceName: CompanionDevice?.Name,
+								timeoutMultiplier: TimeoutMultiplier,
+								variation: Variation,
+								buildTask: BuildTask);
+
 							additional_runner = todayRunner;
 							await todayRunner.RunAsync ();
 							foreach (var log in todayRunner.Logs.Where ((v) => !v.Description.StartsWith ("Extension ", StringComparison.Ordinal)))

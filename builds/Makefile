@@ -15,14 +15,20 @@ download-mono: downloads/$(basename $(MONO_IOS_FILENAME)) downloads/$(basename $
 
 downloads/$(basename $(MONO_IOS_FILENAME)): MONO_URL=$(MONO_IOS_URL)
 downloads/$(basename $(MONO_MAC_FILENAME)): MONO_URL=$(MONO_MAC_URL)
+downloads/$(DOTNET_BCL_REF_NAME): MONO_URL=$(DOTNET_BCL_REF_URL)
 
 include $(TOP)/mk/colors.mk
+
+DOWNLOADS = \
+	downloads/$(MONO_IOS_FILENAME) \
+	downloads/$(MONO_MAC_FILENAME) \
+	downloads/$(DOTNET_BCL_REF_NAME) \
 
 # This target downloads the mono archives, there's one for Xamarin.iOS and one for Xamarin.Mac.
 # If doing many clean builds, it's possible to copy the downloaded zip file to ~/Library/Caches/xamarin-macios
 # to avoid having to download it every time. The zip files have to be copied manually, otherwise
 # we'd end up filling up a lot of hard drives around the world.
-downloads/$(MONO_IOS_FILENAME) downloads/$(MONO_MAC_FILENAME):
+$(DOWNLOADS):
 	$(Q) mkdir -p downloads
 	$(Q) echo "Downloading $(MONO_URL)..."
 	$(Q) if test -f ~/Library/Caches/xamarin-macios/$(notdir $@); then \
@@ -49,34 +55,35 @@ downloads/%: downloads/%.7z
 	$(Q) mv $@.tmp $@
 	$(Q) echo "Unzipped $*."
 
+downloads/%: downloads/%.nupkg
+	$(Q) echo "Unzipping $*..."
+	$(Q) rm -Rf $@.tmp
+	$(Q) unzip -d $@.tmp $<
+	$(Q) find $@.tmp -exec touch {} +
+	$(Q) mv $@.tmp $@
+	$(Q) echo "Unzipped $*."
+
 .stamp-download-mono: download-mono $(TOP)/Make.config $(TOP)/mk/mono.mk
 	$(Q) touch $@
+
+DOTNET_DOWNLOADS = \
+	downloads/$(basename $(DOTNET_BCL_REF_NAME)) \
+
+dotnet: $(DOTNET_DOWNLOADS)
+ifdef ENABLE_DOTNET
+all-local:: $(DOTNET_DOWNLOADS)
+endif
 
 clean-local::
 	$(Q) rm -Rf downloads .stamp-download-mono
 
-x86-64-slice.c: Makefile
-	echo "void xamarin_x86_64_function_for_notarization_workaround () {}" > $@
-
-x86-64-slice.o: x86-64-slice.c
-	$(MAC_CC) -c -ggdb3 $< -o $@
-
-X86_64_SLICE_BASE=$(abspath $(CURDIR)/x86-64-slice)
-X86_64_SLICE_DYLIB=$(X86_64_SLICE_BASE).dylib
-X86_64_SLICE_A=$(X86_64_SLICE_BASE).a
-X86_64_SLICE_NOEXT=$(X86_64_SLICE_BASE)
-X86_64_SLICE=$(X86_64_SLICE_BASE)$(suffix $@)
-
-X86_64_SLICE_ALL=$(X86_64_SLICE_DYLIB) $(X86_64_SLICE_A) $(X86_64_SLICE_NOEXT)
-
-$(X86_64_SLICE_DYLIB): x86-64-slice.o
-	$(MAC_CC) -shared -o$@ $<
-
-$(X86_64_SLICE_A): x86-64-slice.o
-	$(AR) -rv $@ $<
-
-$(X86_64_SLICE_NOEXT): $(X86_64_SLICE_DYLIB)
-	$(Q) $(CP) $< $@
+ifdef INJECT_X86_64_SLICE
+X86_64_SLICE=$(abspath $(CURDIR)/x86-64-slice.dylib)
+$(X86_64_SLICE): Makefile
+	echo "void xamarin_x86_64_function_for_notarization_workaround () {}" | $(MAC_CC) -shared -x c -o$@ -
+else
+X86_64_SLICE=
+endif
 
 ifeq ($(MONO_BUILD_FROM_SOURCE),)
 
@@ -868,10 +875,12 @@ $(IOS_DESTDIR)$(XAMARIN_IPHONEOS_SDK)/usr/lib/%: .stamp-$(MONO_BUILD_MODE) $(X86
 $(IOS_DESTDIR)$(XAMARIN_IPHONEOS_SDK)/Frameworks/Mono.framework/Mono: .stamp-$(MONO_BUILD_MODE) $(X86_64_SLICE_ALL) | $(IOS_DESTDIR)$(XAMARIN_IPHONEOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/ios/Mono.framework $(IOS_DESTDIR)$(XAMARIN_IPHONEOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/ios/Mono.framework.dSYM $(IOS_DESTDIR)$(XAMARIN_IPHONEOS_SDK)/Frameworks
+ifdef INJECT_X86_64_SLICE
 	@# inject x86-64 slice
 	$(Q) mv $@ $@.tmp
 	$(Q_LIPO) lipo $@.tmp $(X86_64_SLICE) -create -output $@
 	$(Q) rm $@.tmp
+endif
 
 $(IPHONEOS_DIRECTORIES):
 	$(Q) mkdir -p $@
@@ -910,10 +919,12 @@ $(IOS_DESTDIR)$(XAMARIN_WATCHOS_SDK)/usr/lib/%: .stamp-$(MONO_BUILD_MODE) $(X86_
 $(IOS_DESTDIR)$(XAMARIN_WATCHOS_SDK)/Frameworks/Mono.framework/Mono: .stamp-$(MONO_BUILD_MODE) $(X86_64_SLICE_ALL) | $(IOS_DESTDIR)$(XAMARIN_WATCHOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/watchos/Mono.framework $(IOS_DESTDIR)$(XAMARIN_WATCHOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/watchos/Mono.framework.dSYM $(IOS_DESTDIR)$(XAMARIN_WATCHOS_SDK)/Frameworks
+ifdef INJECT_X86_64_SLICE
 	@# inject x86-64 slice
 	$(Q) mv $@ $@.tmp
 	$(Q_LIPO) lipo $@.tmp $(X86_64_SLICE) -create -output $@
 	$(Q) rm $@.tmp
+endif
 
 $(WATCHOS_DIRECTORIES):
 	$(Q) mkdir -p $@
@@ -952,10 +963,12 @@ $(IOS_DESTDIR)$(XAMARIN_TVOS_SDK)/usr/lib/%: .stamp-$(MONO_BUILD_MODE) $(X86_64_
 $(IOS_DESTDIR)$(XAMARIN_TVOS_SDK)/Frameworks/Mono.framework/Mono: .stamp-$(MONO_BUILD_MODE) $(X86_64_SLICE_ALL) | $(IOS_DESTDIR)$(XAMARIN_TVOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/tvos/Mono.framework $(IOS_DESTDIR)$(XAMARIN_TVOS_SDK)/Frameworks
 	$(Q) $(CP) -R $(MONO_IOS_SDK_DESTDIR)/ios-frameworks/tvos/Mono.framework.dSYM $(IOS_DESTDIR)$(XAMARIN_TVOS_SDK)/Frameworks
+ifdef INJECT_X86_64_SLICE
 	@# inject x86-64 slice
 	$(Q) mv $@ $@.tmp
 	$(Q_LIPO) lipo $@.tmp $(X86_64_SLICE) -create -output $@
 	$(Q) rm $@.tmp
+endif
 
 $(TVOS_DIRECTORIES):
 	$(Q) mkdir -p $@

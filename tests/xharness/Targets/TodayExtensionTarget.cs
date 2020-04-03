@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using Xamarin;
-using Xharness.Hardware;
-using Xharness.Utilities;
+using Microsoft.DotNet.XHarness.iOS.Shared.Utilities;
+using Microsoft.DotNet.XHarness.iOS.Shared.Hardware;
 
-namespace Xharness.Targets
-{
+namespace Xharness.Targets {
 	public class TodayExtensionTarget : UnifiedTarget
 	{
 		public string AppName { get; private set; }
@@ -63,7 +61,7 @@ namespace Xharness.Targets
 			csproj.SetProjectReferenceInclude ("TodayExtension.csproj", TodayExtensionProjectPath.Replace ('/', '\\'));
 			csproj.FixCompileInclude ("Main.cs", Path.Combine (Harness.TodayContainerTemplate, "Main.cs").Replace ('/', '\\'));
 			csproj.FixInfoPListInclude (suffix, IsGeneratedBclTest ? GeneratedPath : null);
-			TodayContainerGuid = "{" + Harness.NewStableGuid ().ToString ().ToUpper () + "}";
+			TodayContainerGuid = "{" + Helpers.GenerateStableGuid ().ToString ().ToUpper () + "}";
 			ProjectGuid = TodayContainerGuid;
 			csproj.SetProjectGuid (TodayContainerGuid);
 			if (MonoNativeInfo != null) {
