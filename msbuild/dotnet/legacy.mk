@@ -129,7 +129,9 @@ legacy-pack-simple: legacy-prepare
 	$(Q) $(MAKE) legacy-pack-iOS
 
 legacy-pack: $(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).Legacy.Sdk.nupkg)
+lite-pack: $(foreach var,iOS,nupkgs/Xamarin.$(var).Legacy.Sdk.Lite.nupkg)
 $(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).Legacy.Sdk.nupkg): legacy-prepare
+$(foreach var,iOS,nupkgs/Xamarin.$(var).Legacy.Sdk.Lite.nupkg): legacy-prepare
 
 test-legacy-nuget: test/NuGet.config test/global.json
 	$(Q) $(MAKE) legacy-pack-simple

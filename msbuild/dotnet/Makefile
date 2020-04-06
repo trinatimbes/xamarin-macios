@@ -145,7 +145,7 @@ TEMPLATED_FILES = \
 
 all-local:: $(TARGETS) targets/Xamarin.Shared.Sdk.Versions.props
 
-pack: ref-pack sdk-pack runtime-pack
+pack: ref-pack sdk-pack lite-pack runtime-pack
 
 # just a temporary target while debugging for faster turnaround
 packsimple: prepare

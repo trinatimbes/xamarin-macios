@@ -22,7 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$(_buildPath)\$(PackageId)\**">
+    <Content Include="$(_buildPath)\$(PackageId)\**"
+             Exclude="$(_buildPath)\$(PackageId)\**\*.Lite.*">
       <Pack>true</Pack>
       <PackagePath>\</PackagePath>
     </Content>
