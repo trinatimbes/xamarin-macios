@@ -2,6 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PlatformName>iOS</_PlatformName>
+    <_TargetsDiriOS>$(MSBuildExtensionsPath)\Xamarin\iOS</_TargetsDiriOS>
   </PropertyGroup>
 
   <Import Project="Xamarin.Shared.Sdk.Lite.props" />

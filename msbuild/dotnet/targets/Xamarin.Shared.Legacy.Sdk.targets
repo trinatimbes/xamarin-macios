@@ -184,7 +184,7 @@
     <_TargetsDirmacOS>$(XamarinSdkRootDirectory)\tools\msbuild</_TargetsDirmacOS>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(XamarinUseSystemInstall)' != 'false' ">
-    <_TargetsDiriOS>$(XamarinFrameworkRoot)\lib\msbuild\iOS</_TargetsDiriOS>
+    <_TargetsDiriOS Condition="'$(_TargetsDiriOS)' == ''">$(XamarinFrameworkRoot)\lib\msbuild\iOS</_TargetsDiriOS>
     <_TargetsDirtvOS>$(XamarinFrameworkRoot)\lib\msbuild\TVOS</_TargetsDirtvOS>
     <_TargetsDirwatchOS>$(XamarinFrameworkRoot)\lib\msbuild\WatchOS</_TargetsDirwatchOS>
     <_TargetsDirmacOS>$(XamarinFrameworkRoot)\lib\msbuild</_TargetsDirmacOS>
