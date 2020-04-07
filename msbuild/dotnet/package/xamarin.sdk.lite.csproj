@@ -1,9 +1,9 @@
 <Project>
-  <Import Project="../targets/Xamarin.Shared.Legacy.Sdk.Versions.props" />
+  <Import Project="../targets/Xamarin.Shared.Sdk.Versions.props" />
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <PackageId>Xamarin.$(_PlatformName).Legacy.Sdk.Lite</PackageId>
+    <PackageId>Xamarin.$(_PlatformName).Sdk.Lite</PackageId>
     <PackageVersion>$(_PackageVersion)</PackageVersion>
     <RepositoryUrl>https://github.com/xamarin/xamarin-macios</RepositoryUrl>
     <RepositoryBranch>$(CurrentBranch)</RepositoryBranch>
@@ -16,27 +16,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <_fullSdkPackageId>Xamarin.$(_PlatformName).Legacy.Sdk</_fullSdkPackageId>
     <_RepositoryPath>$(MSBuildThisFileDirectory)/../../..</_RepositoryPath>
     <_buildPath>$(_RepositoryPath)/_build</_buildPath>
-    <_packagePath>$(_buildPath)\$(PackageId)</_packagePath>
-    <_fullSdkPackagePath>$(_buildPath)\$(_fullSdkPackageId)</_fullSdkPackagePath>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Include both the "Full" and "Lite" props & targets -->
-    <Content Include="$(_fullSdkPackagePath)\**">
+    <Content Include="$(_buildPath)\$(PackageId)\**">
       <Pack>true</Pack>
       <PackagePath>\</PackagePath>
     </Content>
-    <!-- Import the full SDK props by renaming it -->
-    <Content Update="$(_fullSdkPackagePath)\targets\Xamarin.Shared.Legacy.Sdk.props">
-      <PackagePath>targets\Xamarin.Shared.Legacy.Sdk.Default.props</PackagePath>
-    </Content>
-    <!-- The Lite SDK replaces the full Sdk.props -->
-    <Content Update="$(_fullSdkPackagePath)\targets\Xamarin.Shared.Legacy.Sdk.Lite.props">
-      <PackagePath>targets\Xamarin.Shared.Legacy.Sdk.props</PackagePath>
-    </Content>
   </ItemGroup>
-
 </Project>

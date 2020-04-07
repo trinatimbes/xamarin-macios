@@ -162,7 +162,7 @@ nupkgs/Xamarin.tvOS.%.nupkg: CURRENT_VERSION=$(CURRENT_TVOS_VERSION)
 nupkgs/Xamarin.watchOS.%.nupkg: CURRENT_VERSION=$(CURRENT_WATCHOS_VERSION)
 nupkgs/Xamarin.macOS.%.nupkg: CURRENT_VERSION=$(CURRENT_MACOS_VERSION)
 
-nupkgs/%.nupkg: prepare $(TEMPLATED_FILES)
+nupkgs/%.nupkg: $(TEMPLATED_FILES)
 	$(Q) rm -f $@ nupkgs/$*.*.nupkg
 	$(Q) rm -Rf $(TEST_FEED_PATH)/$(shell echo $* | tr '[:upper:]' '[:lower:]')
 	$(Q) rm -Rf $(HOME)/.nuget/packages/$(shell echo $* | tr '[:upper:]' '[:lower:]')
@@ -183,12 +183,22 @@ runtime-pack-iOS: $(foreach rid,$(IOS_RIDS),nupkgs/Xamarin.iOS.App.Runtime.ios-$
 runtime-pack-tvOS: $(foreach rid,$(TVOS_RIDS),nupkgs/Xamarin.tvOS.App.Runtime.tvos-$(rid).nupkg)
 runtime-pack-watchOS: $(foreach rid,$(WATCHOS_RIDS),nupkgs/Xamarin.watchOS.App.Runtime.watchos-$(rid).nupkg)
 runtime-pack-macOS: $(foreach rid,$(MACOS_RIDS),nupkgs/Xamarin.macOS.App.Runtime.macos-$(rid).nupkg)
+runtime-pack: $(foreach var,$(PLATFORMS),runtime-pack-$(var))
+$(foreach rid,$(IOS_RIDS),nupkgs/Xamarin.iOS.App.Runtime.ios-$(rid).nupkg): prepare
+$(foreach rid,$(TVOS_RIDS),nupkgs/Xamarin.tvOS.App.Runtime.tvos-$(rid).nupkg): prepare
+$(foreach rid,$(WATCHOS_RIDS),nupkgs/Xamarin.watchOS.App.Runtime.watchos-$(rid).nupkg): prepare
+$(foreach rid,$(MACOS_RIDS),nupkgs/Xamarin.macOS.App.Runtime.macos-$(rid).nupkg): prepare
 
 ref-pack-%: nupkgs/Xamarin.%.App.Ref.nupkg;
 ref-pack: $(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).App.Ref.nupkg)
+$(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).App.Ref.nupkg): prepare
+
 sdk-pack-%: nupkgs/Xamarin.%.Sdk.nupkg;
 sdk-pack: $(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).Sdk.nupkg)
-runtime-pack: $(foreach var,$(PLATFORMS),runtime-pack-$(var))
+$(foreach var,$(PLATFORMS),nupkgs/Xamarin.$(var).Sdk.nupkg): prepare
+
+lite-pack: $(foreach var,iOS,nupkgs/Xamarin.$(var).Sdk.Lite.nupkg)
+$(foreach var,iOS,nupkgs/Xamarin.$(var).Sdk.Lite.nupkg): lite-prepare
 
 pack-%:
 	$(MAKE) ref-pack-$* runtime-pack-$* sdk-pack-$*
@@ -231,3 +241,13 @@ prepare:
 	MAC_FRAMEWORK_DIR=$(MAC_FRAMEWORK_DIR) \
 	MONOTOUCH_PREFIX=$(MONOTOUCH_PREFIX) \
 	./build-nugets.sh
+
+lite-prepare:
+	$(Q) V=$(V) \
+	TOP=$(TOP) \
+	DOTNET_DESTDIR=$(DOTNET_DESTDIR) \
+	MAC_DESTDIR=$(MAC_DESTDIR) \
+	IOS_DESTDIR=$(IOS_DESTDIR) \
+	MAC_FRAMEWORK_DIR=$(MAC_FRAMEWORK_DIR) \
+	MONOTOUCH_PREFIX=$(MONOTOUCH_PREFIX) \
+	./build-lite-nugets.sh

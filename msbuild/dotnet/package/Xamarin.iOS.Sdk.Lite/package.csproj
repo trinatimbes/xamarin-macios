@@ -4,7 +4,7 @@
     <_PlatformName>iOS</_PlatformName>
   </PropertyGroup>
 
-  <Import Project="../xamarin.legacy.sdk.lite.csproj" />
+  <Import Project="../xamarin.sdk.lite.csproj" />
 
   <ItemGroup>
     <!-- Remove default Xamarin.iOS.Sdk.props as we'll be using the Lite version -->
