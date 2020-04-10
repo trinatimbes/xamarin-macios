@@ -33,6 +33,7 @@ create_sdk_nugets ()
 	$cp "$TOP/msbuild/dotnet/Xamarin.$platform.Sdk.Lite/Sdk/"* "$destdir/Sdk/"
 	$cp "$TOP/msbuild/dotnet/targets/"* "$destdir/targets/"
 	$cp "$TOP/msbuild/dotnet/Xamarin.$platform.Sdk.Lite/targets/"* "$destdir/targets/"
+	$cp "$TOP/msbuild/dotnet/Xamarin.$platform.Legacy.Sdk/targets/"* "$destdir/targets/"
 
 	$cp -r "$legacy_destdir/lib/msbuild" "$destdir/tools/"
 
