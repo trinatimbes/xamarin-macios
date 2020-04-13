@@ -85,7 +85,7 @@ nuget sources add -name FEEDME -source "$SOURCE" -username WHATEVER -password "$
 # push
 for nuget in "${NUGETS[@]}"; do
 	nuget="$(realpath "$nuget")"
-	nuget push "$nuget" -Source FEEDME -ApiKey WHATEVER -NonInteractive "${VERBOSITY[@]}"
+	nuget push "$nuget" -SkipDuplicate -Source FEEDME -ApiKey WHATEVER -NonInteractive "${VERBOSITY[@]}"
 done
 
 # remove config
