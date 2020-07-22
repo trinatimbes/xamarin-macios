@@ -35,16 +35,16 @@ namespace Xharness.Jenkins {
 		public IHarness Harness { get; }
 		public bool IncludeAll;
 		public bool IncludeBcl;
-		public bool IncludeMac = true;
-		public bool IncludeiOS = true;
-		public bool IncludeiOS64 = true;
-		public bool IncludeiOS32 = true;
+		public bool IncludeMac = false;
+		public bool IncludeiOS = false;
+		public bool IncludeiOS64 = false;
+		public bool IncludeiOS32 = false;
 		public bool IncludeiOSExtensions;
 		public bool ForceExtensionBuildOnly;
 		public bool IncludetvOS = true;
-		public bool IncludewatchOS = true;
+		public bool IncludewatchOS = false;
 		public bool IncludeMmpTest;
-		public bool IncludeiOSMSBuild = true;
+		public bool IncludeiOSMSBuild = false;
 		public bool IncludeMtouch;
 		public bool IncludeBtouch;
 		public bool IncludeMacBindingProject;
