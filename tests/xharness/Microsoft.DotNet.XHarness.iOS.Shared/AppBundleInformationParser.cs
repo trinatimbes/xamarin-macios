@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.XHarness.iOS.Shared {
 			if (info_plist_path == null) {
 				log.WriteLine ($"Could not find Info.plist include for {projectFilePath}");
 				log.WriteLine ("Project contents:");
-				log.WriteLine (File.ReadAllText (projectFilePath))
+				log.WriteLine (File.ReadAllText (projectFilePath));
 				throw new System.Exception ($"Could not find Info.plist include for {projectFilePath}");
 			}
 
