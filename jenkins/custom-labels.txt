@@ -17,6 +17,12 @@
 #
 #
 #
+skip-nugets
+skip-signing
+skip-external-tests
+skip-api-comparison
+skip-packages
+skip-xamarin-mac-tests
 #
 #
 #
