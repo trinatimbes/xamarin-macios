@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -20,6 +21,13 @@ namespace Microsoft.DotNet.XHarness.iOS.Shared {
 
 			string appName = csproj.GetAssemblyName ();
 			string info_plist_path = csproj.GetInfoPListInclude ();
+
+			if (info_plist_path == null) {
+				log.WriteLine ($"Could not find Info.plist include for {projectFilePath}");
+				log.WriteLine ("Project contents:");
+				log.WriteLine (File.ReadAllText (projectFilePath))
+				throw new System.Exception ($"Could not find Info.plist include for {projectFilePath}");
+			}
 
 			var info_plist = new XmlDocument ();
 			string plistPath = Path.Combine (Path.GetDirectoryName (projectFilePath), info_plist_path.Replace ('\\', Path.DirectorySeparatorChar));
