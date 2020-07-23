@@ -509,6 +509,9 @@ timestamps {
                             }
                         }
 
+                        // Delete any packages we might have - the package directory might have packages from previous builds.
+                        sh (script: "rm -Rf ${workspace}/package", returnStatus: true /* don't throw exceptions if something goes wrong */)
+
                         stage ('Packaging') {
                             currentStage = "${STAGE_NAME}"
                             echo ("Building on ${env.NODE_NAME}")
